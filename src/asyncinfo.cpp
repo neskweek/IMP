@@ -28,6 +28,7 @@
 #include <QRegExp>
 #include <QUrlQuery>
 #include <QXmlQuery>
+#include <QString>
 
 
 AsyncInfo::AsyncInfo(QNetworkAccessManager& manager, QObject *parent) : QObject(parent)
@@ -54,12 +55,18 @@ void AsyncInfo::requestId(const QString &name, const char* slot)
     qDebug() << "AsyncInfo::requestId() - " << name;
 
     // Request the Pilot ID
-    QUrl url("https://api.eveonline.com/eve/CharacterID.xml.aspx");
+    QUrl url("https://esi.evetech.net/latest/search/");
     QUrlQuery query;
-    query.addQueryItem("names", name);
+    query.addQueryItem("c", "json");
+    query.addQueryItem("type", "unit");
+    query.addQueryItem("categories", "character"); 
+    query.addQueryItem("datasource", "tranquility");
+    query.addQueryItem("language", "en-us"); 
+    query.addQueryItem("search", name); 
+    query.addQueryItem("strict", "false"); 
     url.setQuery(query);
 
-    //qDebug() << "AsyncInfo::requestId() - after query";
+    
 
     QNetworkRequest request(url);
     request.setRawHeader("User-Agent", meta.agentString.toUtf8());
@@ -68,6 +75,8 @@ void AsyncInfo::requestId(const QString &name, const char* slot)
                 this, slot);
     connect(idReply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error),
                 this, &AsyncInfo::error);
+    
+    qDebug() << "AsyncInfo::requestId() - after query";
 }
 
 void AsyncInfo::idRetrieved()
@@ -75,21 +84,23 @@ void AsyncInfo::idRetrieved()
     QNetworkReply* idReply = qobject_cast<QNetworkReply*>(sender());
     if (!idReply)
         return;
+    
 
     QByteArray b = idReply->readAll();
     idReply->deleteLater();
 
-    QXmlQuery query;
-    query.setFocus(b);
-    query.setQuery("//*:row/@characterID/string()");
-    QString results;
-    query.evaluateTo(&results);
+    
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(b);
+    QJsonObject jsonObject = jsonResponse.object();
 
-    pilot->id = results.toInt();
+    pilot->id = jsonObject.value("character").toArray().first().toInt();
 
-    QUrl imageUrl("http://image.eveonline.com/Character/" +
+    QUrl imageUrl("https://images.evetech.net/Character/" +
                   QString::number(pilot->id) +
                   "_64.jpg");
+    qDebug() << "AsyncInfo::requestId() https://images.evetech.net/Character/" +
+                  QString::number(pilot->id) +
+                  "_64.jpg" ;
     QNetworkRequest request(imageUrl);
     request.setRawHeader("User-Agent", meta.agentString.toUtf8());
     QNetworkReply* pixmapReply = manager->get(request);
@@ -97,6 +108,7 @@ void AsyncInfo::idRetrieved()
                 this, &AsyncInfo::error);
     connect(pixmapReply, &QNetworkReply::finished,
             this, &AsyncInfo::pixmapRetrieved);
+            
 
     // Resumes Asynchronously in pixmapRetrieved()
 }
@@ -261,10 +273,13 @@ void AsyncInfo::rblCheck(int id)
     qDebug() << "AsyncInfo::rblCheck(" << id << ")";
 
     // Request the Character Information
-    QUrl url("https://api.eveonline.com/eve/CharacterInfo.xml.aspx");
+    QUrl url("https://esi.evetech.net/latest/characters/" + QString::number( id ) + "/");
     QUrlQuery query;
-    query.addQueryItem("characterID", QString::number(id));
+    query.addQueryItem("c", "json");
+    query.addQueryItem("type", "unit");
+    query.addQueryItem("datasource", "tranquility");
     url.setQuery(query);
+
 
     QNetworkRequest request(url);
     request.setRawHeader("User-Agent", meta.agentString.toUtf8());
@@ -286,13 +301,11 @@ void AsyncInfo::rblIdRetrieved()
 
     qDebug() << "AsyncInfo::rblIdRetrieved - b = " << b;
 
-    QXmlQuery query;
-    query.setFocus(b);
-    query.setQuery("//*:row/@characterID/string()");
-    QString results;
-    query.evaluateTo(&results);
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(b);
+    QJsonObject jsonObject = jsonResponse.object();
 
-    int id = results.toInt();
+    int id = jsonObject.value("character").toArray().first().toInt();
+
 
     rblCheck(id);
 }
@@ -309,20 +322,23 @@ void AsyncInfo::rblInfoRetrieved()
     infoReply->deleteLater();
 
     qDebug() << "AsyncInfo::rblInfoRetrieved() - " << b;
+    
 
     if(b.length() == 0)
     {
         emit kosCheckFailed(checkNames);
         this->deleteLater();
-        return;
+        //return;
     }
 
-    QXmlQuery query;
-    query.setFocus(b);
-    query.setQuery("//*:row/concat(@corporationID,',',@corporationName/string())");
-    QStringList results;
-    query.evaluateTo(&results);
 
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(b);
+    QJsonObject jsonObject = jsonResponse.object();
+
+    qDebug() << "AsyncInfo::rblInfoRetrieved() - " <<jsonObject;
+    qDebug() << "AsyncInfo::rblInfoRetrieved() - " << jsonObject.value("corporation_id").toInt();
+
+    /*
     m_corpNum = 0;
     foreach(QString result, results)
     {
@@ -343,6 +359,7 @@ void AsyncInfo::rblInfoRetrieved()
 
     emit rblResultReady(checkNames, false);
     this->deleteLater();
+    */
 }
 
 void AsyncInfo::gotKosCheckCorpReply()

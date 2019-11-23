@@ -3,3 +3,5 @@
 /debian/*
 /ThirdParty/build-QSimpleUpdater-Desktop-Debug
 /ThirdParty/QSimpleUpdater
+.vscode
+src/.o
