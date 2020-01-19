@@ -4,4 +4,8 @@
 /ThirdParty/build-QSimpleUpdater-Desktop-Debug
 /ThirdParty/QSimpleUpdater
 .vscode
-src/.o
+src/*.o
+src/moc_*
+src/*.exe
+src/Makefile
+

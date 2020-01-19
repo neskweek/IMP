@@ -24,13 +24,15 @@ DEFINES += VERSION=\\\"$VERSION\\\"
 include(../ThirdParty/QSimpleUpdater/QSimpleUpdater.pri)
 
 win32 {
-    LIBS += -LC:/SFML/lib
+ #   LIBS += -L/home/scapou/PROJETS/mxe/usr/i686-w64-mingw32.static/lib/
+ #   CXXFLAGS +=  -std=c++11 
+ #   DEFINES += -DSFML_STATIC
 
-    CONFIG(release, debug|release): LIBS += -lsfml-audio -lsfml-graphics -lsfml-main -lsfml-network -lsfml-window -lsfml-system
-    CONFIG(debug, debug|release): LIBS += -lsfml-audio-d -lsfml-graphics-d -lsfml-main-d -lsfml-network-d -lsfml-window-d -lsfml-system-d
+    CONFIG(release, debug|release): LIBS += -lsfml-audio-s -lsfml-graphics-s -lsfml-main -lsfml-network-s -lsfml-window-s -lsfml-system-s -lOpenAL32 -lFLAC -lFLAC++ -lvorbisenc -lvorbisfile -lvorbis -logg
+    CONFIG(debug, debug|release): LIBS += -lsfml-audio-s -lsfml-graphics-s -lsfml-main -lsfml-network-s -lsfml-window-s -lsfml-system-s -lOpenAL32 -lFLAC -lFLAC++ -lvorbisenc -lvorbisfile -lvorbis -logg 
 
-    INCLUDEPATH += C:/SFML/include
-    DEPENDPATH += C:/SFML/include
+ #   INCLUDEPATH += /home/scapou/PROJETS/mxe/usr/i686-w64-mingw32.static/include/SFML/
+ #   DEPENDPATH += /home/scapou/PROJETS/mxe/src/
 }
 unix {
     CONFIG(release, debug|release): LIBS += -lsfml-audio -lsfml-graphics -lsfml-network -lsfml-window -lsfml-system

@@ -27,6 +27,7 @@
 #include <QNetworkReply>
 #include <QPixmap>
 #include <QStringList>
+#include <QFile>
 
 struct PilotEntry
 {
@@ -102,6 +103,7 @@ public:
 
     void cacheAvatar(const QString& name);
     void kosCheck(const QString& names);
+    void kosLocalCheck(int id, QString filepath);
     void rblCheck(int id);
     void rblCheck(const QString& name, int id = 0);
 
@@ -114,6 +116,8 @@ signals:
 
 public slots:
     void idRetrieved();
+    void CorpInfoRetrieved();
+    //void AllianceInfoRetrieved();
     void rblIdRetrieved();
     void rblInfoRetrieved();
     void pixmapRetrieved();
@@ -130,7 +134,10 @@ private:
     int m_corpNum = 0;
 
     void requestId(const QString& name, const char* slot);
+    void requestCorpInfo(int id, const char* slot);
+    //void requestAllainceInfo(int id, const char* slot);
     void kosCheck(const QString &reqNames, const char* slot, QString queryType  = "unit");
+    //void kosCheck(int id, const char* slot, QString queryType  = "unit");
 };
 
 #endif // ASYNCINFO_H

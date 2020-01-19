@@ -21,6 +21,7 @@
 #include "asyncinfo.h"
 #include "meta.h"
 
+
 #include <iostream>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -29,6 +30,7 @@
 #include <QUrlQuery>
 #include <QXmlQuery>
 #include <QString>
+#include <QFile>
 
 
 AsyncInfo::AsyncInfo(QNetworkAccessManager& manager, QObject *parent) : QObject(parent)
@@ -46,6 +48,7 @@ void AsyncInfo::cacheAvatar(const QString& name)
     pilot->name = name;
 
     requestId(name, SLOT(idRetrieved()));
+    
 
     // Resumes asynchronously in idRetrieved()
 }
@@ -76,8 +79,39 @@ void AsyncInfo::requestId(const QString &name, const char* slot)
     connect(idReply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error),
                 this, &AsyncInfo::error);
     
+
+    
     qDebug() << "AsyncInfo::requestId() - after query";
 }
+
+
+void AsyncInfo::requestCorpInfo(int id, const char* slot)
+{
+    qDebug() << "AsyncInfo::requestCorpInfo() - " << id;
+
+    // Request the Pilot ID
+    QUrl url("https://esi.evetech.net/latest/corporations/" + QString::number( id ) + "/");
+    QUrlQuery query;
+    query.addQueryItem("c", "json");
+    query.addQueryItem("type", "unit");
+    query.addQueryItem("datasource", "tranquility");
+    url.setQuery(query);
+
+    
+
+    QNetworkRequest request(url);
+    request.setRawHeader("User-Agent", meta.agentString.toUtf8());
+    QNetworkReply* idCorpReply = manager->get(request);
+    connect(idCorpReply, SIGNAL(finished()),
+                this, slot);
+    connect(idCorpReply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error),
+                this, &AsyncInfo::error);
+    
+    qDebug() << "AsyncInfo::requestCorpInfo() - after query";
+}
+
+
+
 
 void AsyncInfo::idRetrieved()
 {
@@ -93,7 +127,9 @@ void AsyncInfo::idRetrieved()
     QJsonDocument jsonResponse = QJsonDocument::fromJson(b);
     QJsonObject jsonObject = jsonResponse.object();
 
+    
     pilot->id = jsonObject.value("character").toArray().first().toInt();
+   
 
     QUrl imageUrl("https://images.evetech.net/Character/" +
                   QString::number(pilot->id) +
@@ -112,6 +148,52 @@ void AsyncInfo::idRetrieved()
 
     // Resumes Asynchronously in pixmapRetrieved()
 }
+
+
+void AsyncInfo::CorpInfoRetrieved()
+{
+    QNetworkReply* idCorpReply = qobject_cast<QNetworkReply*>(sender());
+    if (!idCorpReply)
+        return;
+
+    
+
+    QByteArray b = idCorpReply->readAll();
+    idCorpReply->deleteLater();
+
+    
+    QJsonDocument jsonResponse = QJsonDocument::fromJson(b);
+    QJsonObject jsonObject = jsonResponse.object();
+
+    //qDebug() << "AsyncInfo::requestCorpInfo() - " << jsonObject;
+    qDebug() << "AsyncInfo::requestCorpInfo() - " << jsonObject.value("name").toString();
+
+            kosCheck(jsonObject.value("name").toString(), SLOT(gotKosCheckCorpReply()), "corp");
+            
+
+/*
+    QUrl imageUrl("https://images.evetech.net/Character/" +
+                  QString::number(pilot->id) +
+                  "_64.jpg");
+    qDebug() << "AsyncInfo::requestId() https://images.evetech.net/Character/" +
+                  QString::number(pilot->id) +
+                  "_64.jpg" ;
+    QNetworkRequest request(imageUrl);
+    request.setRawHeader("User-Agent", meta.agentString.toUtf8());
+    QNetworkReply* pixmapReply = manager->get(request);
+    connect(pixmapReply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error),
+                this, &AsyncInfo::error);
+    connect(pixmapReply, &QNetworkReply::finished,
+            this, &AsyncInfo::pixmapRetrieved);
+*/            
+
+    // Resumes Asynchronously in pixmapRetrieved()
+}
+
+
+
+
+
 
 void AsyncInfo::pixmapRetrieved()
 {
@@ -149,7 +231,58 @@ void AsyncInfo::error(QNetworkReply::NetworkError err)
 
 void AsyncInfo::kosCheck(const QString &reqNames)
 {
-    kosCheck(reqNames, SLOT(gotKosCheckReply()));
+    //kosCheck(reqNames, SLOT(gotKosCheckReply()));
+    //kosLocalCheck(jsonObject.value("character").toArray().first().toInt(), QString(":~/.config/EternalDusk/IMP/kos.json"));
+}
+/*
+void AsyncInfo::kosCheck(int id)
+{
+    //kosCheck(reqNames, SLOT(gotKosCheckReply()));
+    //kosLocalCheck(jsonObject.value("character").toArray().first().toInt(), QString(":~/.config/EternalDusk/IMP/kos.json"));
+}
+*/
+void AsyncInfo::kosLocalCheck(int id, QString filepath)
+{
+    QString KosfileName = "/home/scapou/.local/share/EternalDusk/IMP/kos.json";
+    QFile file(KosfileName);
+    file.open(QIODevice::ReadOnly|QIODevice::Text);
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonParseError errorPtr;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
+
+    if (doc.isNull()) {
+        qDebug() << "KOS Cache Parse failed";
+    }
+    
+    QJsonObject koslist = doc.object();
+    qDebug() << "AsyncInfo::kosLocalCheck - KOS Alliances registered : " << koslist.value("alliances").toArray();
+    
+    foreach(const QJsonValue& value, koslist.value("alliances").toArray()) {
+        QJsonObject obj = value.toObject();
+        qDebug() << obj.value("name").toString() + " [" + obj.value("ticker").toString() + "]" + " (" + obj.value("id").toString() + ")" ;
+        if (id == obj.value("id").toInt()){
+            qDebug() << "   ID Match !!!!" ;
+        }
+    }
+    foreach(const QJsonValue& value, koslist.value("corporations").toArray()) {
+        QJsonObject obj = value.toObject();
+        qDebug() << obj.value("name").toString() + " [" + obj.value("ticker").toString() + "]" + " (" + obj.value("id").toString() + ")" ;
+        if (id == obj.value("id").toInt()){
+            qDebug() << "   ID Match !!!!" ;
+        }
+    }
+    foreach(const QJsonValue& value, koslist.value("capsulers").toArray()) {
+        QJsonObject obj = value.toObject();
+        qDebug() << obj.value("name").toString() + " (" + obj.value("id").toString() + ")" ;
+        if (id == obj.value("id").toInt()){
+            qDebug() << "   ID Match !!!!";
+        }
+    }
+
+
+
 }
 
 void AsyncInfo::kosCheck(const QString &reqNames,
@@ -168,7 +301,8 @@ void AsyncInfo::kosCheck(const QString &reqNames,
     names.replace('\n',',');
     qDebug() << "* kosCheck requested for " << names;
 
-    QUrl url("https://kos.cva-eve.org/api/");
+    //QUrl url("https://kos.cva-eve.org/api/");//Nopoe !  surely NOT !
+    QUrl url("https://127.0.0.1/api/");
     QUrlQuery query;
     query.addQueryItem("c", "json");
     query.addQueryItem("type", queryType);
@@ -321,7 +455,7 @@ void AsyncInfo::rblInfoRetrieved()
     QByteArray b = infoReply->readAll();
     infoReply->deleteLater();
 
-    qDebug() << "AsyncInfo::rblInfoRetrieved() - " << b;
+    //qDebug() << "AsyncInfo::rblInfoRetrieved() - " << b;
     
 
     if(b.length() == 0)
@@ -335,9 +469,26 @@ void AsyncInfo::rblInfoRetrieved()
     QJsonDocument jsonResponse = QJsonDocument::fromJson(b);
     QJsonObject jsonObject = jsonResponse.object();
 
-    qDebug() << "AsyncInfo::rblInfoRetrieved() - " <<jsonObject;
-    qDebug() << "AsyncInfo::rblInfoRetrieved() - " << jsonObject.value("corporation_id").toInt();
+    //qDebug() << "AsyncInfo::rblInfoRetrieved() - " <<jsonObject;
+    //qDebug() << "AsyncInfo::rblInfoRetrieved() - Corpo " << jsonObject.value("corporation_id").toInt();
 
+
+/*
+
+    if(jsonObject.value("corporation_id").toInt() > 2000000)
+        {
+            // Found last PC corp
+            requestId(jsonObject.value("corporation_id").toInt() , SLOT(CorpInfoRetrieved()));
+            qDebug() << "  Last PC corp ID =" << jsonObject.value("corporation_id").toString() << ", corp Name =" << jsonObject.value("corporation_id").toString();
+            kosCheck(jsonObject.value("corporation_id").toInt(), SLOT(gotKosCheckCorpReply()), "corp");
+            return;
+        }
+        else
+        {
+            qDebug() << "  NPC corp ID =" << jsonObject.value("corporation_id").toString() << ", corp Name =" << jsonObject.value("corporation_id").toString();
+        }
+    
+*/
     /*
     m_corpNum = 0;
     foreach(QString result, results)
