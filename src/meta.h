@@ -27,13 +27,13 @@ static const struct Version
 {
     Version(){}
 
-    QString release = "0.9.7.7"; //VERSION;
-    QString name = "Pseudoneurotic Decapitation";
+    QString release = "0.9.8.0"; //VERSION;
+    QString name = "Pseudoneurotic Homicide";
 
     QString styleHeader1 = "<span style=\" color:#0000ff;\">";
     QString styleFooter1 = "</span>";
 
-    QString agentString = "IMP/" + release + " (EternalDusk; Qt)";
+    QString agentString = "IMP/" + release + " (Neskweek; Qt)";
     QString versionInfo = styleHeader1 + "v" + release + " - " + name + styleFooter1;
 } meta;
 

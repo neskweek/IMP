@@ -512,7 +512,7 @@ void MainWindow::clipboardUpdated()
                     this, &MainWindow::gotKosReply);
             connect(kosInfo, &AsyncInfo::kosCheckFailed,
                     this, &MainWindow::gotKosError);
-            kosInfo->kosCheck(checkString);
+            kosInfo->kosCheck(checkString, kosCache);
         }
     }
 }
@@ -904,6 +904,8 @@ void MainWindow::loadSettings()
 
         stream >> pilotCache;
     }
+    
+
 }
 
 void MainWindow::saveSettings()
@@ -1082,7 +1084,7 @@ void MainWindow::processMessage(MessageInfo message)
                     AsyncInfo* kosInfo = new AsyncInfo(manager, this);
                     connect(kosInfo, &AsyncInfo::kosResultReady,
                             this, &MainWindow::gotEssReply);
-                    kosInfo->kosCheck(message.related[0]);
+                    kosInfo->kosCheck(message.related[0], kosCache);
                 }
                 else
                 {

@@ -23,14 +23,16 @@
 
 
 #include <iostream>
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegExp>
 #include <QUrlQuery>
 #include <QXmlQuery>
+#include <QStandardPaths>
 #include <QString>
-#include <QFile>
+
 
 
 AsyncInfo::AsyncInfo(QNetworkAccessManager& manager, QObject *parent) : QObject(parent)
@@ -66,7 +68,7 @@ void AsyncInfo::requestId(const QString &name, const char* slot)
     query.addQueryItem("datasource", "tranquility");
     query.addQueryItem("language", "en-us"); 
     query.addQueryItem("search", name); 
-    query.addQueryItem("strict", "false"); 
+    query.addQueryItem("strict", "true"); 
     url.setQuery(query);
 
     
@@ -229,7 +231,7 @@ void AsyncInfo::error(QNetworkReply::NetworkError err)
     this->deleteLater();
 }
 
-void AsyncInfo::kosCheck(const QString &reqNames)
+void AsyncInfo::kosCheck(const QString &reqNames, QJsonObject &kosCache)
 {
     //kosCheck(reqNames, SLOT(gotKosCheckReply()));
     //kosLocalCheck(jsonObject.value("character").toArray().first().toInt(), QString(":~/.config/EternalDusk/IMP/kos.json"));
@@ -243,7 +245,7 @@ void AsyncInfo::kosCheck(int id)
 */
 void AsyncInfo::kosLocalCheck(int id, QString filepath)
 {
-    QString KosfileName = "/home/scapou/.local/share/EternalDusk/IMP/kos.json";
+    QString KosfileName = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/kos.json";
     QFile file(KosfileName);
     file.open(QIODevice::ReadOnly|QIODevice::Text);
     QByteArray data = file.readAll();

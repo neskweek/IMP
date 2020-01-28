@@ -268,42 +268,36 @@ void Options::loadSettings(QSettings& settings)
     ui->selfSuppressCheck->setChecked(settings.value("selfSuppress", true).toBool());
     ui->smoothCheck->setChecked(settings.value("smoothAutofollow", true).toBool());
     ui->essBox->setChecked(settings.value("essAndKos", true).toBool());
-    ui->checkKosDouble->setChecked(settings.value("kosDouble", true).toBool());
+    ui->checkKosDouble->setChecked(settings.value("kosDouble", false).toBool());
     ui->checkAvatar->setChecked(settings.value("showAvatar", true).toBool());
     ui->checkDisableMusic->setChecked(settings.value("disableMusic", false).toBool());
     ui->checkOldIntel->setChecked(settings.value("initOldIntel", true).toBool());
 
-    // Deprecated - remove after a few versions
-/*    _alarmDistance = settings.value("alarmDistance", 1).toInt();
-    _volume = settings.value("volume", 100).toInt();
-    audio->setVolume(_volume);
-    m_soundAlarm = settings.value("soundAlarm", "red-alert.wav").toString();
-*/
     // On Linux, you can just setCurrentText(), but there appears to be a Qt bug on Windows
     // such that it doesn't update the index.
     ui->essCombo->setCurrentIndex(
                 ui->essCombo->findText(
-                    settings.value("soundEss", "sci-fi-alarm.wav").toString()
+                    settings.value("soundEss", "_ESS_Alert.wav").toString()
                     )
                 );
     ui->comboIncomplete->setCurrentIndex(
                 ui->clipKosCombo->findText(
-                    settings.value("soundIncomplete", "bottle-cap-drop.wav").toString()
+                    settings.value("soundIncomplete", "_kos_failed_reply.wav").toString()
                     )
                 );
     ui->clipKosCombo->setCurrentIndex(
                 ui->clipKosCombo->findText(
-                    settings.value("soundIsKos", "140-bpm-wobble-c-in-c.wav").toString()
+                    settings.value("soundIsKos", "_clipboard_kos.wav").toString()
                     )
                 );
     ui->clipNotKosCombo->setCurrentIndex(
                 ui->clipNotKosCombo->findText(
-                    settings.value("soundNoKos", "toy-hit.wav").toString()
+                    settings.value("soundNoKos", "_clipboard_no_kos.wav").toString()
                     )
                 );
     ui->statusCombo->setCurrentIndex(
                 ui->statusCombo->findText(
-                    settings.value("soundStatus", "radio-beep.wav").toString()
+                    settings.value("soundStatus", "_status_requested.wav").toString()
                     )
                 );
 
@@ -318,28 +312,28 @@ void Options::loadSettings(QSettings& settings)
     // I'm just going to brute force fix this for now.
     if(ui->essCombo->currentText() == "") {
         ui->essCombo->setCurrentIndex(
-                    ui->essCombo->findText("sci-fi-alarm.wav")
+                    ui->essCombo->findText("_ESS_Alert")
                     );
     }
     if(ui->comboIncomplete->currentText() == "") {
         ui->comboIncomplete->setCurrentIndex(
-                    ui->comboIncomplete->findText("bottle-cap-drop.wav")
+                    ui->comboIncomplete->findText("_kos_failed_reply.wav")
                     );
     }
     if(ui->clipKosCombo->currentText() == "") {
         ui->clipKosCombo->setCurrentIndex(
-                    ui->clipKosCombo->findText("140-bpm-wobble-c-in-c.wav")
+                    ui->clipKosCombo->findText("_clipboard_kos.wav")
                     );
     }
     if(ui->clipNotKosCombo->currentText() == "") {
         ui->clipNotKosCombo->setCurrentIndex(
-                ui->clipNotKosCombo->findText("toy-hit.wav")
+                ui->clipNotKosCombo->findText("_clipboard_no_kos.wav")
                 );
     }
     if(ui->statusCombo->currentText() == "")
     {
         ui->statusCombo->setCurrentIndex(
-                ui->statusCombo->findText("radio-beep.wav")
+                ui->statusCombo->findText("_status_requested.wav")
                 );
     }
 
@@ -424,7 +418,8 @@ void Options::loadSettings(QSettings& settings)
     }
     else
     {
-        ruleModel->insertRule(true, "Lo[ck]al", " ([Rr][Ee][Dd]|[Kk][Oo][Ss])[\\.!]?$", "play system-grind-01.wav", true);
+        ruleModel->insertRule(true, "Lo[ck]al", " ([Rr][Ee][Dd]|[Kk][Oo][Ss])[\\.!]?$", "play _attack_alert.wav", true);
+        ruleModel->insertRule(true, "Lo[ck]al", " .*[WW][Ww][Ww].*", "play _attack_alert.wav", true);
     }
 
     // Load alarms
@@ -459,8 +454,8 @@ void Options::loadSettings(QSettings& settings)
         else
         {
             // New Default
-            alarmModel->insertAlarm("red-alert.wav", 1.0f);
-            alarmModel->insertAlarm("Danger.wav", 1.0f);
+            alarmModel->insertAlarm("_red_alert.wav", 1.0f);
+            alarmModel->insertAlarm("_warning.wav", 1.0f);
         }
     }
 

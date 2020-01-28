@@ -102,7 +102,7 @@ public:
     explicit AsyncInfo(QNetworkAccessManager& manager, QObject *parent = 0);
 
     void cacheAvatar(const QString& name);
-    void kosCheck(const QString& names);
+    void kosCheck(const QString& names, QJsonObject& kosCache);
     void kosLocalCheck(int id, QString filepath);
     void rblCheck(int id);
     void rblCheck(const QString& name, int id = 0);

@@ -13,20 +13,18 @@ QT       += xml xmlpatterns svg widgets
 TARGET = imp
 TEMPLATE = app
 
-VERSION = 0.9.7.7
-QMAKE_TARGET_COMPANY = EternalDusk
+VERSION = 0.9.8.0
 QMAKE_TARGET_DESCRIPTION = Eve Online Intelligence Management Program
-QMAKE_TARGET_COPYRIGHT = (c) Copyright 2016-2017 Jesse Litton
 QMAKE_TARGET_PRODUCT = IMP
 
 DEFINES += VERSION=\\\"$VERSION\\\"
 
+CONFIG += c++11
+
 include(../ThirdParty/QSimpleUpdater/QSimpleUpdater.pri)
 
 win32 {
- #   LIBS += -L/home/scapou/PROJETS/mxe/usr/i686-w64-mingw32.static/lib/
- #   CXXFLAGS +=  -std=c++11 
- #   DEFINES += -DSFML_STATIC
+    DEFINES += SFML_STATIC
 
     CONFIG(release, debug|release): LIBS += -lsfml-audio-s -lsfml-graphics-s -lsfml-main -lsfml-network-s -lsfml-window-s -lsfml-system-s -lOpenAL32 -lFLAC -lFLAC++ -lvorbisenc -lvorbisfile -lvorbis -logg
     CONFIG(debug, debug|release): LIBS += -lsfml-audio-s -lsfml-graphics-s -lsfml-main -lsfml-network-s -lsfml-window-s -lsfml-system-s -lOpenAL32 -lFLAC -lFLAC++ -lvorbisenc -lvorbisfile -lvorbis -logg 
