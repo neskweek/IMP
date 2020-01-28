@@ -1,3 +1,11 @@
+0.9.8.0 -   Removed calls to CVA API for kos checking as it only gives CVA ratings on players.
+            Furthermore metrics could be collected on those request (server side) that could have favorized CVA members and penalised people that CVA flagged as such.
+            By the way FYI, Vintel and Spyglass stills calls CVA API to read KOS status, be warned.
+            Started to rewrite KOS part so it would read a local file that the user will maintain.
+            This part is non functionnal in this version.
+            KOS (Kill On Sight) ratings WON'T WORK AT ALL !! And it's made on purpose !
+            Changed sounds
+
 0.9.7.7 - Fixed following pilots, after more log breakage from
           CCP.  As long as you've jumped systems in the last
           day or so, the pilot should show up.  In the future,

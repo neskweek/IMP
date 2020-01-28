@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    a.setOrganizationName("EternalDusk");
-    a.setOrganizationDomain("https://github.com/3vi1/IMP");
+    a.setOrganizationName("");
+    a.setOrganizationDomain("https://github.com/neskweek/IMP");
     a.setApplicationName("IMP");
 
     QCommandLineParser parser;

@@ -26,6 +26,8 @@
 #include <QMainWindow>
 #include <QShortcut>
 #include <QString>
+#include <QJsonObject>
+#include <QJsonParseError>
 
 #include <QSimpleUpdater.h>
 
@@ -204,6 +206,7 @@ private:
     BridgeMap* bridgeMap = NULL;
     bool bridgeLoading = true;
     bool errorRetrievingBridgeFile = false;
+    bool errorRetrievingKosFile = false;
 
     QMap<QString, PilotEntry> pilotCache;
 
@@ -237,6 +240,7 @@ private:
     //EventThread eventThread;                      // Not currently used
     QMap<QString, qint64> soundLastPlayed;
     void playLocalFileDeduped(const QString &fileName, float volume = 1.0);
+    QJsonObject kosCache;
 };
 
 #endif // MAINWINDOW_H
